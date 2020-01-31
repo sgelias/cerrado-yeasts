@@ -8,26 +8,36 @@ output: html_notebook
 
 ## Carrega os pacotes necessários
 ```{r}
+
 # install.packages('ggplot2', dependencies = T)
 # install.packages('userfriendlyscience')
 require(ggplot2)
 require(userfriendlyscience)
+
 ```
 
 
+Passos para realização da análise dos dados:
+1 - Realizar análises exploratórias para verificar o comportamento da variável a ser analisada;
+2 - Se necessário, remover valores discrepantes que podem levar a deficiências analíticas como outliers e dados faltantes;
+3 - Nesse passo são realizadas as análises própriamente ditas, entretanto os métodos sesão selecionados de acordo com os resultados das análises exploratórias (passo 1) e somente após limpeza dos dados (passo 2).
 
-## Passo 1 - Carrega e visualiza os dados
+
+## Carregar os dados
 ```{r}
+
 data1 <- read.csv("Biocontrole.csv", row.names = 1)
 data1
+
 ```
 
 
-## Passo 2 - Análise exploratória dos dados
+## Passo 1 - Realizar uma análise exploratória dos dados
 
 
-### Plota um histograma para verificar a distribuição possível dos dados
+### Plotar um histograma para verificar a distribuição possível dos dados
 ```{r}
+
 hist1 <- ggplot(data1, aes(data1$growth)) +
   geom_histogram(aes(y = ..density..), bins = 20) +
   labs(x = "Crescimento (cm)", y = "Frequência") +
@@ -43,18 +53,23 @@ ggsave(
 
 
 hist1
+
 ```
 
 
-### Verifica o ajuste à normalidade univariada e homogeneidade das variâncias
+### Verificar o ajuste à normalidade univariada e homogeneidade das variâncias
 ```{r}
+
 # Normalidade univariada
 shapiro.test(data1$growth)
 
 # Homogeneidade das variâncias
 bartlett.test(growth ~ group, data = data1)
+
 ```
 
+
+## Passo 2 - Limpeza dos dados
 
 ### Verifica quantos registros sobrarão caso os valores maiores que 8.5 sejam removidos
 ```{r}
@@ -85,13 +100,16 @@ print(
 
 ### Remove valores maiores que 8.5 cm
 ```{r}
+
 data1.1 <- data1[data1$growth < 8.5, ]
 data1.1
+
 ```
 
 
 ### Re-plota o histograma
 ```{r}
+
 hist2 <- ggplot(data1.1, aes(data1.1$growth)) +
   geom_histogram(aes(y = ..density..), bins = 20) +
   labs(x = "Crescimento (cm)", y = "Frequência") +
@@ -100,39 +118,55 @@ hist2 <- ggplot(data1.1, aes(data1.1$growth)) +
 
 ggsave(
   plot = hist2,
-  filename = "Figures/Experimento_1/Histograma1.svg",
+  filename = "Figures/Experimento_1/Histograma2.svg",
   #height = 5,
   width = 15
 )
 
 
 hist2
+
 ```
 
 
 ### Verifica o ajuste à distribuição normal
 ```{r}
+
 # Normalidade univariada
 shapiro.test(data1.1$growth)
 
 # Homogeneidade das variâncias
 bartlett.test(growth ~ group, data = data1.1)
+
 ```
 
+## Passo 3 - Nesse passo será utilizada a análise de variância, considerando que a hipótese de não normalidade dos dados foi aceita (vide teste de Shapiro-Wilk), com o teste post-hoc de Games-Howell, dado que as variâncias dos grupos não foi considerada homogênea (teste de Bartlett).
 
 ### Análise de variância
 ```{r}
+
 lnModel <- oneway(
-  y = ChickWeight$weight,
-  x = ChickWeight$Diet,
+
+  # Variável resposta: Crescimento  
+  y = data1.1$growth,
+  
+  # Variável auxiliar: Isolado fúngico
+  x = data1.1$group,
+  
+  # Teste post-hoc
   posthoc = 'games-howell',
+  
+  # Parâmetro que define a inclusão das letras nas comparações pareadas dos grupos.
   posthocLetters = TRUE
+  
 )
+
 ```
 
 
 ### Plota os dados do experimento 1
 ```{r}
+
 gp_box <- ggplot(data1.1, aes(x = reorder(group, -growth, median), y = growth)) +
   
   # Graph type
@@ -161,6 +195,7 @@ ggsave(
 
 
 gp_box
+
 ```
 
 
