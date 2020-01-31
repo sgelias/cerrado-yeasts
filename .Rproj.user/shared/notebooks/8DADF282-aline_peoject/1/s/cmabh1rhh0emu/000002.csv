@@ -1,0 +1,17 @@
+"0","```r
+hist1 <- ggplot(data1, aes(data1$growth)) +
+  geom_histogram(aes(y = ..density..), bins = 20) +
+  labs(x = \"Crescimento (cm)\", y = \"Frequência\") +
+  geom_density(col = 'red')
+
+
+ggsave(
+  plot = hist1,
+  filename = \"Figures/Experimento_1/Histograma1.svg\",
+  #height = 5,
+  width = 15
+)
+
+
+hist1
+```"

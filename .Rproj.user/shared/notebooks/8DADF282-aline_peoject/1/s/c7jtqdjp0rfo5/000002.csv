@@ -1,0 +1,4 @@
+"0","```r
+data1 <- read.csv(\"Biocontrole.csv\", row.names = 1)
+data1
+```"

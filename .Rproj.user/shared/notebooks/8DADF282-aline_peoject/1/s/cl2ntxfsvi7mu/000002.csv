@@ -1,0 +1,30 @@
+"0","```r
+gp_box <- ggplot(data1.1, aes(x = reorder(group, -growth, median), y = growth)) +
+  
+  # Graph type
+  geom_boxplot() +
+  
+  # Labels
+  labs(x = \"Isolado\", y = \"Crescimento (cm)\") +
+  
+  # Theme labels position
+  theme(axis.text.x = element_text(angle = 90)) +
+  
+  # Annotations
+  geom_text(
+    aes(label = y, y = y + 0.05),
+    position = position_dodge(0.9),
+    vjust = 0
+  )
+
+
+ggsave(
+  plot = gp_box,
+  filename = \"Figures/Experimento_1/Boxplot.svg\",
+  #height = 5,
+  width = 15
+)
+
+
+gp_box
+```"

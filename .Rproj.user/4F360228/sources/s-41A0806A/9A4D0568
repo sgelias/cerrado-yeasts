@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1580497691783.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3214727307",
+    "id" : "9A4D0568",
+    "lastKnownWriteTime" : 1580498166,
+    "last_content_update" : 1580498166012,
+    "path" : "~/Documents/Tese/Extras/TCCs/Aline/aline_peoject.Rmd",
+    "project_path" : "aline_peoject.Rmd",
+    "properties" : {
+        "chunk_output_type" : "inline",
+        "cursorPosition" : "166,0",
+        "scrollLine" : "131"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

@@ -1,0 +1,9 @@
+"0","```r
+lnModel <- oneway(
+  y = ChickWeight$weight,
+  x = ChickWeight$Diet,
+  posthoc = 'games-howell',
+  posthocLetters = TRUE
+)
+
+```"

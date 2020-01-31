@@ -1,0 +1,7 @@
+"0","```r
+# Normalidade univariada
+shapiro.test(data1$growth)
+
+# Homogeneidade das variâncias
+bartlett.test(growth ~ group, data = data1)
+```"

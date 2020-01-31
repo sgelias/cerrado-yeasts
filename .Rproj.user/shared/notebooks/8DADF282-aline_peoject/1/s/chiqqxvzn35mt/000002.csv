@@ -1,0 +1,24 @@
+"0","```r
+
+print(
+  paste0(
+   'Tamanh total da matriz: ',
+   dim(data1)[1] 
+  )
+)
+
+print(
+  paste0(
+   'Número de registos a serem removidos: ',
+   dim(data1[data1$growth > 8.5, ])[1] 
+  )
+)
+
+print(
+  paste0(
+   'Tamanho da matriz após a remoção dos registros maiores que 8.5: ',
+   dim(data1[data1$growth < 8.5, ])[1] 
+  )
+)
+
+```"
