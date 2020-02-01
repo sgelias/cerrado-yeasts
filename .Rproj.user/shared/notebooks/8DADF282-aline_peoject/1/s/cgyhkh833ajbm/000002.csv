@@ -1,4 +1,0 @@
-"0","```r
-data1.1 <- data1[data1$growth < 8.5, ]
-data1.1
-```"

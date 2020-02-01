@@ -1,6 +1,0 @@
-"0","```r
-# install.packages('ggplot2', dependencies = T)
-# install.packages('userfriendlyscience')
-require(ggplot2)
-require(userfriendlyscience)
-```"

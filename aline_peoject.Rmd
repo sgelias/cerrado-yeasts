@@ -10,9 +10,15 @@ output: html_notebook
 ```{r}
 
 # install.packages('ggplot2', dependencies = T)
-# install.packages('userfriendlyscience')
+# install.packages('userfriendlyscience', dependencies = T)
+# install.packages('svglite', dependencies = T)
+# install.packages('pairwiseComparisons')
 require(ggplot2)
 require(userfriendlyscience)
+require(svglite)
+require(pairwiseComparisons)
+require(agricolae)
+library(ggridges)
 
 ```
 
@@ -48,7 +54,7 @@ ggsave(
   plot = hist1,
   filename = "Figures/Experimento_1/Histograma1.svg",
   #height = 5,
-  width = 15
+  width = 8
 )
 
 
@@ -118,9 +124,9 @@ hist2 <- ggplot(data1.1, aes(data1.1$growth)) +
 
 ggsave(
   plot = hist2,
-  filename = "Figures/Experimento_1/Histograma1.svg",
+  filename = "Figures/Experimento_1/Histograma2.svg",
   #height = 5,
-  width = 15
+  width = 8
 )
 
 
@@ -140,60 +146,79 @@ bartlett.test(growth ~ group, data = data1.1)
 
 ```
 
+
 ## Passo 3 - Nesse passo será utilizada a análise de variância, considerando que a hipótese de não normalidade dos dados foi aceita (vide teste de Shapiro-Wilk), com o teste post-hoc de Games-Howell, dado que as variâncias dos grupos não foi considerada homogênea (teste de Bartlett).
+
 
 ### Análise de variância
 ```{r}
 
-lnModel <- oneway(
-
-  # Variável resposta: Crescimento  
-  y = data1.1$growth,
-  
-  # Variável auxiliar: Isolado fúngico
-  x = data1.1$group,
-  
-  # Teste post-hoc
-  posthoc = 'games-howell',
-  
-  # Parâmetro que define a inclusão das letras no teste 
-  posthocLetters = TRUE
-  
+lmModel <- aov(
+  log10(growth) ~ group,
+  data = data1
 )
+
+lmModel
+
+hist(lmModel$residuals)
+
+shapiro.test(lmModel$residuals)
+
+TukeyHSD(lmModel)
+
+hsd_pair <- HSD.test(lmModel, "group", group = T)
 
 ```
 
 
 ### Plota os dados do experimento 1
-```{r}
-gp_box <- ggplot(data1.1, aes(x = reorder(group, -growth, median), y = growth)) +
+```{r fig.width=8, fig.height=10}
+
+stat_labels = hsd_pair$groups
+
+stat_labels$labels = paste0(stat_labels$groups, " (", round(stat_labels$`log10(growth)` * 10, digits = 2), ")")
+
+gp_box <- ggplot(data1, aes(x = reorder(group, growth, median), y = growth)) +
   
   # Graph type
-  geom_boxplot() +
+  geom_boxplot(width = 0.5) +
+  
+  scale_fill_manual(values = 'white') +
+  
+  scale_color_manual(values = 'grey70') +
   
   # Labels
   labs(x = "Isolado", y = "Crescimento (cm)") +
   
   # Theme labels position
-  theme(axis.text.x = element_text(angle = 90)) +
+  theme() +
   
-  # Annotations
+  # Include text
   geom_text(
-    aes(label = y, y = y + 0.05),
-    position = position_dodge(0.9),
-    vjust = 0
-  )
+    data = hsd_pair$groups,
+    mapping = aes(
+      x = rownames(hsd_pair$groups), 
+      y = 2, 
+      label = stat_labels$groups
+    ),
+    hjust = 0
+  ) +
+  
+  geom_hline(yintercept = 6, linetype = "dashed", color = "grey50") +
+  
+  # Rotate right
+  coord_flip()
 
 
 ggsave(
   plot = gp_box,
   filename = "Figures/Experimento_1/Boxplot.svg",
-  #height = 5,
-  width = 15
+  height = 10,
+  width = 8
 )
 
 
 gp_box
-```
 
+```
 
