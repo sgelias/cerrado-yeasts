@@ -1,5 +1,5 @@
 ---
-title: "Experimento 1 - Biocontrole Fúngico"
+title: "Análises TCC Aline"
 output:
   html_document:
     df_print: paged
@@ -7,12 +7,17 @@ output:
     toc_depth: 3
 ---
 
+# Experimento 1 - Biocontrole Fúngico
+
 
 ## Carrega os pacotes necessários
-```{r}
+```{r warning=FALSE, message=FALSE}
 
 # install.packages('ggplot2', dependencies = T)
 # install.packages('svglite', dependencies = T)
+require(userfriendlyscience)
+require(pairwiseComparisons)
+require(multcompView)
 require(ggplot2)
 require(svglite)
 require(agricolae)
@@ -27,7 +32,7 @@ Passos para realização da análise dos dados:
 
 
 ## Carregar os dados
-```{r}
+```{r warning=FALSE, message=FALSE}
 
 data1 <- read.csv("Biocontrole.csv", row.names = 1)
 data1
@@ -39,7 +44,7 @@ data1
 
 
 ### Plotar um histograma para verificar a distribuição possível dos dados
-```{r}
+```{r warning=FALSE, message=FALSE}
 
 hist1 <- ggplot(data1, aes(data1$growth)) +
   geom_histogram(aes(y = ..density..), bins = 20) +
@@ -61,7 +66,7 @@ hist1
 
 
 ### Verificar o ajuste à normalidade univariada e homogeneidade das variâncias
-```{r}
+```{r warning=FALSE, message=FALSE}
 
 # Normalidade univariada
 shapiro.test(data1$growth)
@@ -72,24 +77,29 @@ bartlett.test(growth ~ group, data = data1)
 ```
 
 
-## Passo 2 - Nesse passo será utilizada a análise de variância, considerando que a hipótese de não normalidade dos dados foi aceita (vide teste de Shapiro-Wilk), será utilizado o logarítmo na base dez do crescimento micelial como variável resposta.
+## Passo 2 - Considerando que a hipótese de normalidade dos dados testada durante a análise de Shapiro-Wilk foi rejeitada (p = 0.001123), será utilizado o logarítmo na base 10 do crescimento micelial como variável resposta. Desse modo, a normalidade dos resíduos deverá ser testada para verificar a aderência dos dados ao modelo.
 
 
 ### Roda a análise de variância
-```{r}
+```{r warning=FALSE, message=FALSE}
 
 lmModel <- aov(
+  
+  # Fórmula utilizada no ajuste linear
   log10(growth) ~ group,
+  
+  # Dataset utilizado
   data = data1
+  
 )
 
-lmModel
+summary.aov(lmModel)
 
 ```
 
 
 ### Testa a normalidade univariada dos resíduos
-```{r}
+```{r warning=FALSE, message=FALSE}
 
 # Normalidade univariada dos resíduos
 shapiro.test(lmModel$residuals)
@@ -97,17 +107,8 @@ shapiro.test(lmModel$residuals)
 ```
 
 
-### Gera o teste de multiplicidade
-```{r}
-
-hsd_pair <- HSD.test(lmModel, "group", group = T)
-
-```
-
-
-
 ### Gera um histograma com os resíduos gerados na análise de variância
-```{r}
+```{r warning=FALSE, message=FALSE}
 
 res <- data.frame(
   cbind(
@@ -135,8 +136,24 @@ hist2
 ```
 
 
+NOTA: acima pode-se observar que a distribuição dos resíduos segue uma distibuição normal e que a hipótese de aderência a normalidade não foi rejeitada, desse modo pode-se considerar os resultados da análise de variância (ANOVA) como representativos dos dados, e portanto, satisfatória.
+
+
+### Gera o teste de multiplicidade
+```{r warning=FALSE, message=FALSE}
+
+hsd_pair <- LSD.test(
+  lmModel, 
+  "group",
+  group = T,
+  p.adj = 'bonferroni'
+)
+
+```
+
+
 ### Plota o boxplot com os dados do experimento 1
-```{r fig.width=8, fig.height=10}
+```{r fig.width=8, fig.height=10, warning=FALSE, message=FALSE}
 
 stat_labels = hsd_pair$groups
 
@@ -147,17 +164,13 @@ gp_box <- ggplot(data1, aes(x = reorder(group, growth, median), y = growth)) +
   # Graph type
   geom_boxplot(width = 0.5) +
   
-  scale_fill_manual(values = 'white') +
-  
-  scale_color_manual(values = 'grey70') +
-  
   # Labels
   labs(x = "Isolado", y = "Crescimento (cm)") +
   
   # Theme labels position
   theme() +
   
-  # Include text
+  # Include multiplicity test results as text
   geom_text(
     data = hsd_pair$groups,
     mapping = aes(
@@ -168,7 +181,9 @@ gp_box <- ggplot(data1, aes(x = reorder(group, growth, median), y = growth)) +
     hjust = 0
   ) +
   
-  geom_hline(yintercept = 6, linetype = "dashed", color = "grey50") +
+  # Insert horizontal lines
+  geom_hline(yintercept = 6, linetype = "dashed", color = "red") +
+  geom_hline(yintercept = 9, size = 0.2, color = "red") +
   
   # Rotate right
   coord_flip()
@@ -177,6 +192,219 @@ gp_box <- ggplot(data1, aes(x = reorder(group, growth, median), y = growth)) +
 ggsave(
   plot = gp_box,
   filename = "Figures/Experimento_1/Boxplot.svg",
+  height = 10,
+  width = 8
+)
+
+
+gp_box
+
+```
+
+
+____
+# Experimento 2 - Estímulo do crescimento vegetal
+
+
+## Carregar os dados
+```{r warning=FALSE, message=FALSE}
+
+data2 <- read.csv("CrescimentoVegetal.csv", row.names = 1)
+data2
+
+```
+
+NOTA: as análises desse experimento seguem os mesmos dois passos do experimento anterior.
+
+## Passo 1 - Realizar uma análise exploratória dos dados
+
+
+### Plotar um histograma para verificar a distribuição dos dados de comprimento de raiz
+```{r warning=FALSE, message=FALSE}
+
+hist1_2 <- ggplot(data2, aes(data2$rootLength)) +
+  geom_histogram(aes(y = ..density..), bins = 20) +
+  labs(x = "Crescimento (cm)", y = "Frequência") +
+  geom_density(col = 'red')
+
+
+ggsave(
+  plot = hist1_2,
+  filename = "Figures/Experimento_2/Histograma1.svg",
+  #height = 5,
+  width = 8
+)
+
+
+hist1_2
+
+```
+
+
+### Verificar o ajuste à normalidade univariada e homogeneidade das variâncias
+```{r warning=FALSE, message=FALSE}
+
+# Normalidade univariada
+shapiro.test(data2$rootLength)
+
+# Homogeneidade das variâncias
+bartlett.test(rootLength ~ group, data = data2)
+
+```
+
+
+### Realiza a limpeza dos dados, mantendo somente registros com valor de crescimento da raiz maiores que zero.
+```{r warning=FALSE, message=FALSE}
+
+data2.2 = data2[data2$colonyLength >= 1, ]
+data2.2
+
+```
+
+
+### Plotar um histograma para verificar a distribuição dos dados de comprimento de raiz
+```{r warning=FALSE, message=FALSE}
+
+hist2_2 <- ggplot(data2.2, aes(data2.2$rootLength)) +
+  geom_histogram(aes(y = ..density..), bins = 20) +
+  labs(x = "Crescimento (cm)", y = "Frequência") +
+  geom_density(col = 'red')
+
+
+ggsave(
+  plot = hist2_2,
+  filename = "Figures/Experimento_2/Histograma2.svg",
+  #height = 5,
+  width = 8
+)
+
+
+hist2_2
+
+```
+
+
+### Verificar o ajuste à normalidade univariada e homogeneidade das variâncias
+```{r warning=FALSE, message=FALSE}
+
+# Normalidade univariada
+shapiro.test(data2.2$rootLength)
+
+# Homogeneidade das variâncias
+bartlett.test(rootLength ~ group, data = data2.2)
+
+```
+
+
+### Roda a análise de variância
+```{r warning=FALSE, message=FALSE}
+
+lmModel_2 <- aov(
+  
+  # Fórmula utilizada no ajuste linear
+  rootLength ~ group,
+  
+  # Dataset utilizado
+  data = data2.2
+  
+)
+
+
+summary.aov(lmModel_2)
+
+```
+
+
+### Testa a normalidade univariada dos resíduos
+```{r warning=FALSE, message=FALSE}
+
+# Normalidade univariada dos resíduos
+shapiro.test(lmModel_2$residuals)
+
+```
+
+
+### Gera um histograma com os resíduos gerados na análise de variância
+```{r warning=FALSE, message=FALSE}
+
+res_2 <- data.frame(
+  cbind(
+    lmModel_2$residuals,
+    lmModel_2$model 
+  )
+)
+
+
+hist3 <- ggplot(res_2, aes(res_2$lmModel_2.residuals)) +
+  geom_histogram(aes(y = ..density..), bins = 20) +
+  labs(x = "Crescimento (cm)", y = "Frequência") +
+  geom_density(col = 'red')
+
+
+ggsave(
+  plot = hist3,
+  filename = "Figures/Experimento_2/Histograma3.svg",
+  width = 8
+)
+
+
+hist3
+
+```
+
+
+### Gera o teste de multiplicidade
+```{r warning=FALSE, message=FALSE}
+
+hsd_pair_2 <- LSD.test(
+  lmModel_2, 
+  "group",
+  group = T,
+  p.adj = 'bonferroni'
+)
+
+```
+
+
+### Plota o boxplot com os dados de comprimento de raiz do experimento 2
+```{r fig.width=8, fig.height=10, warning=FALSE, message=FALSE}
+
+stat_labels_2 = hsd_pair_2$groups
+
+stat_labels_2$labels = paste0(stat_labels_2$groups, " (", stat_labels_2$rootLength, ")")
+
+gp_box <- ggplot(data2.2, aes(x = reorder(group, rootLength, median), y = rootLength)) +
+  
+  # Graph type
+  geom_boxplot(width = 0.5) +
+  
+  # Labels
+  labs(x = "Isolado", y = "Comprimento da raiz (cm)") +
+  
+  # Theme labels position
+  theme() +
+  
+  # Include multiplicity test results as text
+  geom_text(
+    data = hsd_pair_2$groups,
+    mapping = aes(
+      x = rownames(hsd_pair_2$groups), 
+      y = -1, 
+      label = stat_labels_2$groups
+    ),
+    hjust = 0
+  ) +
+  
+  # Insert horizontal lines
+  geom_hline(yintercept = 10, linetype = "dashed", color = "red") +
+  
+  # Rotate right
+  coord_flip()
+
+
+ggsave(
+  plot = gp_box,
+  filename = "Figures/Experimento_2/Boxplot.svg",
   height = 10,
   width = 8
 )
