@@ -245,7 +245,7 @@ multi_hist <- ggarrange(hist1_2, hist1_3,
 
 ggsave(
   plot = multi_hist,
-  filename = "Figures/Experimento_2/Multi_Histograma1.svg",
+  filename = "Figures/Experimento_2/MultiHistograma1.svg",
   #height = 5,
   width = 8
 )
