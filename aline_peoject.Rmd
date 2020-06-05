@@ -22,9 +22,11 @@ output:
 library(pairwiseComparisons)
 library(multcompView)
 library(ggplot2)
+library(ggrepel)
 library(svglite)
 library(agricolae)
 library(ggpubr)
+library(dplyr)
 
 ```
 
@@ -439,7 +441,7 @@ gp_box <- ggplot(data2.2, aes(x = reorder(group, rootLength, mean), y = rootLeng
   ) +
   
   # Insert horizontal lines
-  geom_hline(yintercept = 10, linetype = "dashed", suze = 1, color = "grey50") +
+  geom_hline(yintercept = 10, linetype = "dashed", size = 0.8, color = "grey50") +
   geom_segment(aes(x = 12, xend = 46, y = -2, yend = -2), size = 1, color = "grey70") +
   geom_segment(aes(x = 1, xend = 11, y = -2, yend = -2), size = 1, color = "grey30") +
   
@@ -460,6 +462,73 @@ ggsave(
 
 
 gp_box
+
+```
+
+
+# Final comparison
+```{r fig.width=10, fig.height=8}
+
+full_dataset <- merge(
+  data1 %>%
+  group_by(group) %>%
+  summarise(
+    mean = mean(growth),
+    sd = sd(growth),
+    var = var(growth),
+    min = min(growth),
+    max = max(growth),
+    n = n()
+  ),
+  data2 %>%
+  group_by(group) %>%
+  summarise(
+    mean = mean(rootLength),
+    sd = sd(rootLength),
+    var = var(rootLength),
+    min = min(rootLength),
+    max = max(rootLength),
+    n = n()
+  ),
+  by.x = "group",
+  by.y = "group"
+)
+
+
+full_scatter <- ggplot(full_dataset, aes(x = mean.x, y = mean.y)) +
+  
+  # Define theme
+  theme_bw() +
+  
+  
+  # Add reference lines
+  geom_hline(yintercept = 9, linetype = "dashed", size = 0.8, color = "grey70") +
+  geom_vline(xintercept = 5.5, linetype = "dashed", size = 0.8, color = "grey70") +
+  
+  # Labels
+  labs(
+    x = "Biocontrol variable. Average colony diameter (cm)", 
+    y = "Vegetal growth promotion/inhibition. Average root length (cm)") +
+  
+  # Remove legends
+  theme(legend.position = "none") +
+  
+  # Define geometry
+  geom_point(aes(color = group), size = 3) +
+  
+  # Define labels inside graph
+  geom_text_repel(aes(label = group,  color = group), size = 5)
+
+
+ggsave(
+  plot = full_scatter,
+  filename = "Figures/ScatterplotBiocontrolVsVegetalPromotion.svg",
+  height = 10,
+  width = 8
+)
+
+
+full_scatter
 
 ```
 
