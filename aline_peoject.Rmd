@@ -15,13 +15,16 @@ output:
 
 # install.packages('ggplot2', dependencies = T)
 # install.packages('svglite', dependencies = T)
-require(userfriendlyscience)
-require(pairwiseComparisons)
-require(multcompView)
-require(ggplot2)
-require(svglite)
-require(agricolae)
-library(ggridges)
+# install.packages('pairwiseComparisons', dependencies = T)
+# install.packages('multcompView', dependencies = T)
+# install.packages('ggpubr', dependencies = T)
+# library(userfriendlyscience)
+library(pairwiseComparisons)
+library(multcompView)
+library(ggplot2)
+library(svglite)
+library(agricolae)
+library(ggpubr)
 
 ```
 
@@ -48,7 +51,7 @@ data1
 
 hist1 <- ggplot(data1, aes(data1$growth)) +
   geom_histogram(aes(y = ..density..), bins = 20) +
-  labs(x = "Crescimento (cm)", y = "Frequência") +
+  labs(x = "Colony diameter (cm)", y = "Frequency") +
   geom_density(col = 'red')
 
 
@@ -120,7 +123,7 @@ res <- data.frame(
 
 hist2 <- ggplot(res, aes(res$lmModel.residuals)) +
   geom_histogram(aes(y = ..density..), bins = 20) +
-  labs(x = "Crescimento (cm)", y = "Frequência") +
+  labs(x = "Residuals", y = "Frequency") +
   geom_density(col = 'red')
 
 
@@ -159,13 +162,13 @@ stat_labels = hsd_pair$groups
 
 stat_labels$labels = paste0(stat_labels$groups, " (", round(stat_labels$`log10(growth)` * 10, digits = 2), ")")
 
-gp_box <- ggplot(data1, aes(x = reorder(group, growth, median), y = growth)) +
-  
+gp_box <- ggplot(data1, aes(x = reorder(group, growth, mean), y = growth)) +
+
   # Graph type
   geom_boxplot(width = 0.5) +
   
   # Labels
-  labs(x = "Isolado", y = "Crescimento (cm)") +
+  labs(x = "Isolate", y = "Colony diameter (cm)") +
   
   # Theme labels position
   theme() +
@@ -182,8 +185,10 @@ gp_box <- ggplot(data1, aes(x = reorder(group, growth, median), y = growth)) +
   ) +
   
   # Insert horizontal lines
-  geom_hline(yintercept = 6, linetype = "dashed", color = "red") +
-  geom_hline(yintercept = 9, size = 0.2, color = "red") +
+  geom_hline(yintercept = 6, linetype = "dashed", color = "grey50") +
+  geom_hline(yintercept = 9, size = 0.2, color = "grey50") +
+  geom_segment(aes(x = 11, xend = 45, y = 1.8, yend = 1.8), size = 1, color = "grey70") +
+  geom_segment(aes(x = 1, xend = 10, y = 1.8, yend = 1.8), size = 1, color = "grey30") +
   
   # Rotate right
   coord_flip()
@@ -220,23 +225,33 @@ NOTA: as análises desse experimento seguem os mesmos dois passos do experimento
 
 
 ### Plotar um histograma para verificar a distribuição dos dados de comprimento de raiz
-```{r warning=FALSE, message=FALSE}
+```{r warning=FALSE, message=FALSE, fig.width=12, fig.height=6}
 
 hist1_2 <- ggplot(data2, aes(data2$rootLength)) +
   geom_histogram(aes(y = ..density..), bins = 20) +
-  labs(x = "Crescimento (cm)", y = "Frequência") +
+  labs(x = "Roots total length", y = "Frequency") +
   geom_density(col = 'red')
 
 
+hist1_3 <- ggplot(data2, aes(data2$area)) +
+  geom_histogram(aes(y = ..density..), bins = 20) +
+  labs(x = "Above-ground area total length", y = "Frequency") +
+  geom_density(col = 'red')
+
+
+multi_hist <- ggarrange(hist1_2, hist1_3,
+  labels = c("A", "B"),
+  ncol = 2, nrow = 1)
+
 ggsave(
-  plot = hist1_2,
-  filename = "Figures/Experimento_2/Histograma1.svg",
+  plot = multi_hist,
+  filename = "Figures/Experimento_2/Multi_Histograma1.svg",
   #height = 5,
   width = 8
 )
 
 
-hist1_2
+multi_hist
 
 ```
 
@@ -246,8 +261,10 @@ hist1_2
 
 # Normalidade univariada
 shapiro.test(data2$rootLength)
+shapiro.test(data2$area)
 
 # Homogeneidade das variâncias
+bartlett.test(area ~ group, data = data2)
 bartlett.test(rootLength ~ group, data = data2)
 
 ```
@@ -256,30 +273,42 @@ bartlett.test(rootLength ~ group, data = data2)
 ### Realiza a limpeza dos dados, mantendo somente registros com valor de crescimento da raiz maiores que zero.
 ```{r warning=FALSE, message=FALSE}
 
-data2.2 = data2[data2$colonyLength >= 1, ]
+#data2.2 <- data2[which(data2$area >= 1, data2$rootLength >= 1), ]
+data2.2 <- subset(data2, area >= 1, rootLength >= 1)
 data2.2
 
 ```
 
 
 ### Plotar um histograma para verificar a distribuição dos dados de comprimento de raiz
-```{r warning=FALSE, message=FALSE}
+```{r warning=FALSE, message=FALSE, fig.width=12, fig.height=6}
 
 hist2_2 <- ggplot(data2.2, aes(data2.2$rootLength)) +
   geom_histogram(aes(y = ..density..), bins = 20) +
-  labs(x = "Crescimento (cm)", y = "Frequência") +
+  labs(x = "Residuals", y = "Frequency") +
   geom_density(col = 'red')
 
 
+hist2_3 <- ggplot(data2.2, aes(data2.2$area)) +
+  geom_histogram(aes(y = ..density..), bins = 20) +
+  labs(x = "Residuals", y = "Frequency") +
+  geom_density(col = 'red')
+
+
+multi_hist2 <- ggarrange(hist2_2, hist2_3,
+  labels = c("A", "B"),
+  ncol = 2, nrow = 1)
+
+
 ggsave(
-  plot = hist2_2,
-  filename = "Figures/Experimento_2/Histograma2.svg",
+  plot = multi_hist2,
+  filename = "Figures/Experimento_2/MultiHistograma2.svg",
   #height = 5,
   width = 8
 )
 
 
-hist2_2
+multi_hist2
 
 ```
 
@@ -289,9 +318,11 @@ hist2_2
 
 # Normalidade univariada
 shapiro.test(data2.2$rootLength)
+shapiro.test(data2.2$area)
 
 # Homogeneidade das variâncias
 bartlett.test(rootLength ~ group, data = data2.2)
+bartlett.test(area ~ group, data = data2.2)
 
 ```
 
@@ -310,7 +341,19 @@ lmModel_2 <- aov(
 )
 
 
+lmModel_3 <- aov(
+  
+  # Fórmula utilizada no ajuste linear
+  area ~ group,
+  
+  # Dataset utilizado
+  data = data2.2
+  
+)
+
+
 summary.aov(lmModel_2)
+summary.aov(lmModel_3)
 
 ```
 
@@ -337,7 +380,7 @@ res_2 <- data.frame(
 
 hist3 <- ggplot(res_2, aes(res_2$lmModel_2.residuals)) +
   geom_histogram(aes(y = ..density..), bins = 20) +
-  labs(x = "Crescimento (cm)", y = "Frequência") +
+  labs(x = "Residuals", y = "Frequency") +
   geom_density(col = 'red')
 
 
@@ -357,7 +400,7 @@ hist3
 ```{r warning=FALSE, message=FALSE}
 
 hsd_pair_2 <- LSD.test(
-  lmModel_2, 
+  lmModel_2,
   "group",
   group = T,
   p.adj = 'bonferroni'
@@ -373,13 +416,13 @@ stat_labels_2 = hsd_pair_2$groups
 
 stat_labels_2$labels = paste0(stat_labels_2$groups, " (", stat_labels_2$rootLength, ")")
 
-gp_box <- ggplot(data2.2, aes(x = reorder(group, rootLength, median), y = rootLength)) +
+gp_box <- ggplot(data2.2, aes(x = reorder(group, rootLength, mean), y = rootLength)) +
   
   # Graph type
   geom_boxplot(width = 0.5) +
   
   # Labels
-  labs(x = "Isolado", y = "Comprimento da raiz (cm)") +
+  labs(x = "Isolate", y = "Root length (cm)") +
   
   # Theme labels position
   theme() +
@@ -396,7 +439,13 @@ gp_box <- ggplot(data2.2, aes(x = reorder(group, rootLength, median), y = rootLe
   ) +
   
   # Insert horizontal lines
-  geom_hline(yintercept = 10, linetype = "dashed", color = "red") +
+  geom_hline(yintercept = 10, linetype = "dashed", suze = 1, color = "grey50") +
+  geom_segment(aes(x = 12, xend = 46, y = -2, yend = -2), size = 1, color = "grey70") +
+  geom_segment(aes(x = 1, xend = 11, y = -2, yend = -2), size = 1, color = "grey30") +
+  
+  # stat_summary(
+  #   fun.y = mean, colour = "grey50", size = 0.5, show_guide = FALSE
+  # ) + 
   
   # Rotate right
   coord_flip()
@@ -413,4 +462,5 @@ ggsave(
 gp_box
 
 ```
+
 
